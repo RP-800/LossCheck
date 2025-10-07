@@ -1,171 +1,198 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>廃棄対象日確認Web</title>
-<style>
-body {
-  font-family: sans-serif;
-  margin: 40px;
-  background: #f9f9f9;
-}
-h1 {
-  text-align: center;
-  margin-bottom: 10px;
-}
-#today {
-  text-align: center;
-  font-size: 1.1em;
-  margin-bottom: 10px;
-}
-button {
-  display: block;
-  margin: 10px auto;
-  padding: 8px 16px;
-  font-size: 1em;
-  border: none;
-  border-radius: 6px;
-  background-color: #0078d4;
-  color: white;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-button:hover {
-  background-color: #005fa3;
-}
-table {
-  border-collapse: collapse;
-  width: 100%;
-  margin-top: 20px;
-  background: white;
-  box-shadow: 0 0 6px rgba(0,0,0,0.1);
-}
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
-th {
-  background-color: #eee;
-}
-
-/* 更新情報ボックス */
-#update-info {
-  margin-top: 40px;
-  padding: 16px;
-  background: #fff;
-  border-left: 6px solid #0078d4;
-  box-shadow: 0 0 6px rgba(0,0,0,0.1);
-}
-#update-info h2 {
-  margin-top: 0;
-}
-.update-item {
-  margin-bottom: 10px;
-}
-.update-date {
-  color: #0078d4;
-  font-weight: bold;
-}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>廃棄対象確認Web</title>
+  <style>
+    body {
+      font-family: "Segoe UI", "Hiragino Sans", "Meiryo", sans-serif;
+      background-color: #f8f9fa;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #2a71d0;
+      color: #fff;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.3rem;
+    }
+    main {
+      padding: 1.5rem;
+      max-width: 700px;
+      margin: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      background: #fff;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 0.8rem;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background-color: #e9f0fb;
+    }
+    tr:last-child td {
+      border-bottom: none;
+    }
+    button {
+      display: block;
+      margin: 0.5rem auto 2rem;
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
+      background-color: #2a71d0;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    button:hover {
+      background-color: #1d56a5;
+    }
+    section#update-section {
+      background-color: #fff;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    #update-section h2 {
+      border-left: 5px solid #2a71d0;
+      padding-left: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    #update-info h3 {
+      margin-top: 1rem;
+      font-size: 1rem;
+      color: #2a71d0;
+    }
+    #update-info ul {
+      margin-top: 0.3rem;
+      margin-bottom: 0.8rem;
+      padding-left: 1.2rem;
+    }
+    #update-info li {
+      margin-bottom: 0.3rem;
+    }
+  </style>
 </head>
 <body>
+  <header>廃棄対象確認Web</header>
 
-<h1>廃棄対象日確認Web</h1>
+  <main>
+    <h2>廃棄対象期間一覧</h2>
+    <p id="today"></p>
 
-<div id="today"></div>
-<button onclick="reloadPage()">本日の情報を再読み込み</button>
+    <table>
+      <thead>
+        <tr>
+          <th>区分</th>
+          <th>廃棄対象期間</th>
+        </tr>
+      </thead>
+      <tbody id="discard-table"></tbody>
+    </table>
 
-<table>
-  <thead>
-    <tr>
-      <th>区分</th>
-      <th>廃棄対象日（範囲）</th>
-      <th>廃棄対象となる消費期限</th>
-    </tr>
-  </thead>
-  <tbody id="result"></tbody>
-</table>
+    <button id="reload-btn">再読み込み</button>
 
-<!-- ▼ 更新情報セクション -->
-<div id="update-info">
-  <h2>更新情報</h2>
-  <div id="updates">読み込み中...</div>
-</div>
+    <section id="update-section">
+      <h2>更新情報</h2>
+      <div id="update-info">読み込み中...</div>
+    </section>
+  </main>
 
-<script>
-function formatDate(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}/${m}/${d}`;
-}
+  <script>
+    // 日付計算用
+    function formatDate(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}/${m}/${d}`;
+    }
 
-function addDays(date, days) {
-  const d = new Date(date);
-  d.setDate(d.getDate() + days);
-  return d;
-}
+    function renderDiscardTable() {
+      const today = new Date();
+      document.getElementById("today").textContent = `本日の日付：${formatDate(today)}`;
 
-function showData() {
-  const today = new Date();
-  document.getElementById("today").innerHTML =
-    `<strong>本日：</strong>${formatDate(today)}`;
+      const categories = [
+        { name: "K-1", days: 1 },
+        { name: "K-3", days: 3 },
+        { name: "K-5", days: 5 },
+        { name: "K-30", days: 30 }
+      ];
 
-  const table = document.getElementById("result");
-  table.innerHTML = ""; // 前回の内容をクリア
+      const tbody = document.getElementById("discard-table");
+      tbody.innerHTML = "";
 
-  const data = [
-    { k: "K-1", days: 0 },
-    { k: "K-3", days: 2 },
-    { k: "K-5", days: 4 },
-    { k: "K-30", days: 29 }
-  ];
+      categories.forEach(cat => {
+        const discardDate = new Date(today);
+        discardDate.setDate(today.getDate() + (cat.days - 1));
 
-  data.forEach(item => {
-    const start = formatDate(today);
-    const end = formatDate(addDays(today, item.days));
-    const row = document.createElement("tr");
-    row.innerHTML = `
-      <td>${item.k}</td>
-      <td>${start} ～ ${end}</td>
-      <td>${item.days + 1}日以内</td>
-    `;
-    table.appendChild(row);
-  });
-}
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${cat.name}</td>
+          <td>${formatDate(today)} ～ ${formatDate(discardDate)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
 
-function reloadPage() {
-  location.reload(true);
-}
+    // 更新情報を読み込む
+    function loadUpdateInfo() {
+      fetch("update.json")
+        .then(res => res.json())
+        .then(data => {
+          const container = document.getElementById("update-info");
+          container.innerHTML = "";
 
-// ▼ update.jsonを読み込んで更新情報を表示
-async function loadUpdates() {
-  const updateDiv = document.getElementById("updates");
-  try {
-    const res = await fetch("update.json");
-    if (!res.ok) throw new Error("update.json が見つかりません");
-    const updates = await res.json();
+          // 日付ごとにグループ化
+          const grouped = data.reduce((acc, item) => {
+            if (!acc[item.date]) acc[item.date] = [];
+            acc[item.date].push(item.text);
+            return acc;
+          }, {});
 
-    updateDiv.innerHTML = "";
-    updates.forEach(u => {
-      const div = document.createElement("div");
-      div.className = "update-item";
-      div.innerHTML = `
-        <div class="update-date">${u.date}</div>
-        <div class="update-text">${u.text}</div>
-      `;
-      updateDiv.appendChild(div);
+          // 新しい日付順にソート
+          const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
+
+          sortedDates.forEach(date => {
+            const dateHeader = document.createElement("h3");
+            dateHeader.textContent = `🗓 ${date}`;
+            container.appendChild(dateHeader);
+
+            const ul = document.createElement("ul");
+            grouped[date].forEach(text => {
+              const li = document.createElement("li");
+              li.textContent = text;
+              ul.appendChild(li);
+            });
+            container.appendChild(ul);
+          });
+        })
+        .catch(err => {
+          document.getElementById("update-info").textContent = "更新情報の読み込みに失敗しました。";
+          console.error(err);
+        });
+    }
+
+    // 再読み込みボタン
+    document.getElementById("reload-btn").addEventListener("click", () => {
+      renderDiscardTable();
+      loadUpdateInfo();
     });
-  } catch (err) {
-    updateDiv.innerHTML = `<span style="color:red;">更新情報の読み込みに失敗しました：${err.message}</span>`;
-  }
-}
 
-showData();
-loadUpdates();
-</script>
-
+    // 初期表示
+    renderDiscardTable();
+    loadUpdateInfo();
+  </script>
 </body>
 </html>
