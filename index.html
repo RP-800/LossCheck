@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>廃棄対象日確認Web</title>
+<style>
+body {
+  font-family: sans-serif;
+  margin: 40px;
+  background: #f9f9f9;
+}
+h1 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+#today {
+  text-align: center;
+  font-size: 1.1em;
+  margin-bottom: 10px;
+}
+button {
+  display: block;
+  margin: 10px auto;
+  padding: 8px 16px;
+  font-size: 1em;
+  border: none;
+  border-radius: 6px;
+  background-color: #0078d4;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+button:hover {
+  background-color: #005fa3;
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-top: 20px;
+  background: white;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+}
+th, td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+th {
+  background-color: #eee;
+}
+</style>
+</head>
+<body>
+
+<h1>廃棄対象日確認アプリ</h1>
+
+<div id="today"></div>
+<button onclick="reloadPage()">本日の情報を再読み込み</button>
+
+<table>
+  <thead>
+    <tr>
+      <th>区分</th>
+      <th>廃棄対象日（範囲）</th>
+      <th>廃棄対象となる消費期限</th>
+    </tr>
+  </thead>
+  <tbody id="result"></tbody>
+</table>
+
+<script>
+function formatDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}/${m}/${d}`;
+}
+
+function addDays(date, days) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + days);
+  return d;
+}
+
+function showData() {
+  const today = new Date();
+  document.getElementById("today").innerHTML =
+    `<strong>本日：</strong>${formatDate(today)}`;
+
+  const table = document.getElementById("result");
+  table.innerHTML = ""; // 前回の内容をクリア
+
+  const data = [
+    { k: "K-1", days: 0 },
+    { k: "K-3", days: 2 },
+    { k: "K-5", days: 4 },
+    { k: "K-30", days: 29 }
+  ];
+
+  data.forEach(item => {
+    const start = formatDate(today);
+    const end = formatDate(addDays(today, item.days));
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${item.k}</td>
+      <td>${start} ～ ${end}</td>
+      <td>${item.days + 1}日以内</td>
+    `;
+    table.appendChild(row);
+  });
+}
+
+function reloadPage() {
+  // ページを再読み込み（キャッシュ対策で強制リロード）
+  location.reload(true);
+}
+
+showData();
+</script>
+
+</body>
+</html>
