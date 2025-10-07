@@ -49,6 +49,25 @@ th, td {
 th {
   background-color: #eee;
 }
+
+/* 更新情報ボックス */
+#update-info {
+  margin-top: 40px;
+  padding: 16px;
+  background: #fff;
+  border-left: 6px solid #0078d4;
+  box-shadow: 0 0 6px rgba(0,0,0,0.1);
+}
+#update-info h2 {
+  margin-top: 0;
+}
+.update-item {
+  margin-bottom: 10px;
+}
+.update-date {
+  color: #0078d4;
+  font-weight: bold;
+}
 </style>
 </head>
 <body>
@@ -56,7 +75,7 @@ th {
 <h1>廃棄対象日確認Web</h1>
 
 <div id="today"></div>
-<button onclick="reloadPage()">本日の情報を再読み込み</button>
+<button onclick="reloadPage()">🔄 本日の情報を再読み込み</button>
 
 <table>
   <thead>
@@ -68,6 +87,12 @@ th {
   </thead>
   <tbody id="result"></tbody>
 </table>
+
+<!-- ▼ 更新情報セクション -->
+<div id="update-info">
+  <h2>📢 更新情報</h2>
+  <div id="updates">読み込み中...</div>
+</div>
 
 <script>
 function formatDate(date) {
@@ -112,11 +137,34 @@ function showData() {
 }
 
 function reloadPage() {
-  // ページを再読み込み（キャッシュ対策で強制リロード）
   location.reload(true);
 }
 
+// ▼ update.jsonを読み込んで更新情報を表示
+async function loadUpdates() {
+  const updateDiv = document.getElementById("updates");
+  try {
+    const res = await fetch("update.json");
+    if (!res.ok) throw new Error("update.json が見つかりません");
+    const updates = await res.json();
+
+    updateDiv.innerHTML = "";
+    updates.forEach(u => {
+      const div = document.createElement("div");
+      div.className = "update-item";
+      div.innerHTML = `
+        <div class="update-date">${u.date}</div>
+        <div class="update-text">${u.text}</div>
+      `;
+      updateDiv.appendChild(div);
+    });
+  } catch (err) {
+    updateDiv.innerHTML = `<span style="color:red;">更新情報の読み込みに失敗しました：${err.message}</span>`;
+  }
+}
+
 showData();
+loadUpdates();
 </script>
 
 </body>
