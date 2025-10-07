@@ -148,7 +148,7 @@
 
     // 更新情報を読み込む
     function loadUpdateInfo() {
-      fetch("update.json")
+      fetch("update.json?nocache=" + new Date().getTime())
         .then(res => res.json())
         .then(data => {
           const container = document.getElementById("update-info");
@@ -166,7 +166,7 @@
 
           sortedDates.forEach(date => {
             const dateHeader = document.createElement("h3");
-            dateHeader.textContent = `🗓 ${date}`;
+            dateHeader.textContent = `${date}`;
             container.appendChild(dateHeader);
 
             const ul = document.createElement("ul");
